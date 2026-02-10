@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+directory_structure.png
+resources/check_dpg.py
+resources/test_dpg.py
+resources/test_nesting.py
+resources/test_recursion.py
+resources/refresh_view_snippet.py
+.DS_Store
