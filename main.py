@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 def get_file_icon(path: pathlib.Path):
-    """Returns an emoji icon and color for a given file path."""
+    """Returns a symbol icon and color for a given file path."""
     suffix = path.suffix.lower()
     
     # Colors (RGB)
@@ -15,26 +15,27 @@ def get_file_icon(path: pathlib.Path):
     COLOR_DATA = (100, 220, 120)  # Green
     COLOR_WEB = (240, 200, 80)   # Yellow
     
+    # Using Unicode symbols that are guaranteed to work in default fonts
     if suffix == '.py':
-        return "🐍", COLOR_PYTHON
+        return "[Py]", COLOR_PYTHON
     elif suffix in ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp']:
-        return "🖼️", COLOR_IMAGE
+        return "[IMG]", COLOR_IMAGE
     elif suffix in ['.json', '.xml', '.yaml', '.yml', '.toml']:
-        return "{}", COLOR_DATA
+        return "[≣]", COLOR_DATA
     elif suffix in ['.html', '.css', '.js', '.ts']:
-        return "🌐", COLOR_WEB
+        return "[WEB]", COLOR_WEB
     elif suffix in ['.txt', '.md', '.rst']:
-        return "📝", COLOR_DEFAULT
+        return "[DOC]", COLOR_DEFAULT
     elif suffix in ['.ods', '.xlsx', '.csv', '.xls']:
-        return "📊", COLOR_DATA
+        return "[TBL]", COLOR_DATA
     elif suffix in ['.zip', '.rar', '.7z', '.tar', '.gz']:
-        return "📦", (180, 180, 180)
+        return "[ZIP]", (180, 180, 180)
     elif suffix == '.pdf':
-        return "📕", (230, 80, 80)
+        return "[PDF]", (230, 80, 80)
     elif suffix in ['.exe', '.bat', '.ps1']:
-        return "⚙️", (160, 160, 160)
+        return "[EXE]", (160, 160, 160)
     
-    return "📄", COLOR_DEFAULT
+    return "[•]", COLOR_DEFAULT
 
 def sanitize_text(text):
     """Sanitizes text to avoid issues with Dear PyGui's internal text rendering."""
@@ -63,7 +64,7 @@ def build_tree(path: pathlib.Path, visited=None):
         try:
             items = list(path.iterdir())
         except PermissionError:
-            dpg.add_text("🚫 Access Denied", color=(255, 50, 50))
+            dpg.add_text("[✗] Access Denied", color=(255, 50, 50))
             return
 
         # Filter hidden folders (starting with dot)
@@ -76,17 +77,17 @@ def build_tree(path: pathlib.Path, visited=None):
             try:
                 if item.is_dir():
                     # Using context manager 'with' handles parentage automatically via stack
-                    with dpg.tree_node(label=sanitize_text(f"📁 {item.name}"), default_open=True):
+                    with dpg.tree_node(label=sanitize_text(f"[DIR] {item.name}"), default_open=True):
                         build_tree(item, visited)
                 else:
                     icon, color = get_file_icon(item)
-                    label = sanitize_text(f"{icon}  {item.name}")
+                    label = sanitize_text(f"{icon} {item.name}")
                     dpg.add_text(label, color=color)
             except Exception as e:
                 print(f"Error adding item {item}: {e}")
 
     except Exception as e:
-        dpg.add_text(f"⚠️ Error: {str(e)}", color=(255, 50, 50))
+        dpg.add_text(f"[!] Error: {str(e)}", color=(255, 50, 50))
 
 def refresh_view(sender, app_data, user_data):
     """Callback to refresh the file tree based on the input path."""
@@ -114,7 +115,7 @@ def refresh_view(sender, app_data, user_data):
     # Set up the top-level group inside the container to start the recursion
     with dpg.group(parent=container):
         display_name = str(path.resolve()) if show_full_path else path.name
-        dpg.add_text(f"📂 {display_name}", color=(120, 200, 255)) # Slightly different color for root
+        dpg.add_text(f"[ROOT] {display_name}", color=(120, 200, 255)) # Slightly different color for root
         dpg.add_separator()
         build_tree(path)
 
@@ -152,7 +153,9 @@ def take_screenshot():
     
     # 2. Define the capture step (runs 2 frames later to ensure UI is hidden in GPU buffer)
     def capture_step():
-        output_file = "directory_structure.png"
+        # Save to Pictures folder
+        pictures_folder = os.path.expanduser("~\\Pictures\\")
+        output_file = os.path.join(pictures_folder, "directory_structure.png")
         dpg.output_frame_buffer(file=output_file)
         
         # 3. Define the restore step (runs 2 frames after capture)
@@ -194,7 +197,7 @@ with dpg.window(tag="Primary Window"):
             dpg.add_checkbox(label="Show Full Path", tag="full_path_toggle", default_value=False, callback=refresh_view)
             dpg.add_text(" (Toggle to change directory display name)", color=(150, 150, 150))
 
-    dpg.add_button(label="📸 Save Clean Screenshot", tag="screenshot_button", callback=take_screenshot)
+    dpg.add_button(label="[SAVE] Screenshot", tag="screenshot_button", callback=take_screenshot)
     dpg.add_text("", tag="status_text", color=(100, 255, 100))
     
     dpg.add_separator(tag="main_sep")
